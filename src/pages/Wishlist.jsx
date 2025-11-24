@@ -1,72 +1,133 @@
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import useBookContext from "../contexts/BookContext";
 import { Link } from "react-router-dom";
 
 const Wishlist = () => {
-  const { wishlist, removeFromWishlist, cart, handleAddtoCart } = useBookContext();
+  const {
+    wishlistBooks,
+    removeFromWishlist,
+    cartFull,
+    handleAddToCart,
+    loading,
+    error,
+  } = useBookContext();
   return (
     <>
-      <Header />
       <div className="container my-5">
-        <h3 className="text-start">My Wishlist</h3>
-        
-        <div className="row g-4 mt-3">
-          {wishlist?.length === 0 ? (
-            <p>Your wishlist is currently empty.</p>
-          ) : (
-            wishlist?.map((book) => (
-             
-              <div key={book._id} className="col-md-3 my-3">
-                <div className="card h-100 text-center shadow-sm border-0" style={{ maxWidth: "500px" }}>
-                  <Link to={`/books/${book._id}`} className="text-decoration-none">
-                    <img
-                      src={book.imageUrl}
-                      className="card-img-top img-fluid"
-                      alt={book.title}
-                      style={{
-                          objectFit: "contain",
-                          maxHeight: "300px",
-                          width: "100%",
-                        }}
-                    />
-                    <div className="card-body">
-                      <h5 className="card-title text-dark">{book.title}</h5>
-                      <h6 className="fw-bold text-muted">₹{book.price} </h6>
-                    </div>
-                  </Link>
-                  
+        <Link to="/books" className="btn btn-outline-secondary">
+          ← Back to books
+        </Link>
+        <h3 className="text-center">
+          My Wishlist{" "}
+          {wishlistBooks?.length != 0 ? "(" + wishlistBooks?.length + ")" : ""}
+        </h3>
 
-                  <div className="text-center">
-                  <button
-                className={`btn mb-2 w-75 ${
-                  cart.some((item) => item._id === book._id)
-                    ? "btn-success"
-                    : "btn-outline-success"
-                }`}
-                onClick={() => handleAddtoCart(book._id)}
-              >
-                {cart.some((item) => item._id === book._id)
-                  ? "Added to Cart"
-                  : "Add to Cart"}
-              </button>
-
-                  <button
-                    className="btn btn-outline-danger w-75"
-                    onClick={() => removeFromWishlist(book._id)}
-                  >
-                    Remove from Wishlist
-                  </button>
-                  </div>
-                </div>
-              </div>
-            ))
+        <div>
+          {loading && (
+            <div className="text-center my-5">
+              <div className="spinner-border text-success" role="status"></div>
+              <p className="mt-3">Loading books...</p>
+            </div>
           )}
+
+          {error && <p className="display-5">Error: {error}</p>}
+        </div>
+
+        <div className="row g-4 mt-3">
+          {wishlistBooks?.length === 0
+            ? !loading && (
+                <p className="fs-3 text-center">
+                  Your wishlist is currently empty.
+                </p>
+              )
+            : wishlistBooks?.map((book) => {
+                const discountPercent = Math.round(
+                  ((book.mrp - book.price) / book.mrp) * 100
+                );
+
+                const isInCart = cartFull?.some(
+                  (item) => item._id === book._id
+                );
+                return (
+                  <div key={book._id} className="col-md-3 my-3 col-6 col-sm-4">
+                    <div
+                      className="card h-100 text-center mb-4 shadow-sm border-0"
+                      style={{ maxWidth: "500px" }}
+                    >
+                      <Link
+                        to={`/books/${book._id}`}
+                        className="text-decoration-none"
+                      >
+                        <div className="position-relative">
+                          <img
+                            src={book.imageUrl}
+                            className="card-img-top"
+                            alt={book.title}
+                            style={{
+                              height: "220px",
+                              width: "100%",
+                              objectFit: "contain",
+                              background: "rgba(255, 255, 255, 1)",
+                            }}
+                          />
+
+                          <div
+                            className="position-absolute top-0 start-0 m-2 px-2 py-1 bg-dark text-warning rounded"
+                            style={{ fontSize: "0.85rem", opacity: 0.8 }}
+                          >
+                            ★ {book.rating}
+                          </div>
+                        </div>
+
+                        <div className="card-body py-4 ">
+                          <h5
+                            className="card-title text-muted"
+                            style={{ minHeight: "38px" }}
+                          >
+                            {book.title}
+                          </h5>
+
+                          <div className="d-flex align-items-center justify-content-center gap-2 mt-2">
+                            <h6 className="fw-bold text-dark mb-0">
+                              ₹{book.price}
+                            </h6>
+
+                            <h6 className="text-decoration-line-through text-muted mb-0 small">
+                              ₹{book.mrp}
+                            </h6>
+
+                            <span className="badge bg-success">
+                              {discountPercent}% OFF
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+
+                      <div className="text-center">
+                        <button
+                          className={`btn mb-3 w-75 ${
+                            isInCart ? "btn-success" : "btn-outline-success"
+                          }`}
+                          onClick={() => {
+                            if (isInCart) return;
+                            handleAddToCart(book._id);
+                          }}
+                        >
+                          {isInCart ? "Added to Cart" : "Move to Cart"}
+                        </button>
+
+                        <button
+                          className="btn btn-outline-danger w-75"
+                          onClick={() => removeFromWishlist(book._id)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
         </div>
       </div>
-      <br />
-      <br />
-      <Footer />
     </>
   );
 };

@@ -1,139 +1,292 @@
 import { createContext, useEffect, useContext, useState } from "react";
 import useFetch from "../useFetch";
+import { toast } from "react-toastify";
 
 const BookContext = createContext();
 const useBookContext = () => useContext(BookContext);
 
-
 export function BookProvider({ children }) {
-const { data, loading, error } = useFetch("https://booknest-backend-two.vercel.app/books");
+  const {
+    data: allBooks,
+    loading,
+    error,
+  } = useFetch("https://booknest-backend-webapp.vercel.app/books");
 
-const [searchTerm, setSearchTerm] = useState("");
-const [filter, setFilter] = useState([])
-const [category, setCategory] = useState([]);
-const [sortOrder, setSortOrder] = useState("");
-const [wishlist, setWishlist] = useState([]);
-const [cart, setCart] = useState([])
-const [rating, setRating] = useState(0);
+  const userId = "692002971799d55f258db410";
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filter, setFilter] = useState([]);
+  const [category, setCategory] = useState([]);
+  const [sortOrder, setSortOrder] = useState("");
+  const [wishlist, setWishlist] = useState([]);
+  const [cart, setCart] = useState([]);
+  const [rating, setRating] = useState(0);
 
+  const wishlistBooks = allBooks
+    ? allBooks.filter((book) => wishlist.includes(book._id))
+    : [];
 
-useEffect(() => {
-  if (!data) return;
+  const cartFull = allBooks
+    ? allBooks
+        .filter((book) => cart.some((item) => item.bookId === book._id))
+        .map((book) => ({
+          ...book,
+          quantity: cart.find((item) => item.bookId === book._id).quantity,
+        }))
+    : [];
 
-  let filtered = category.length
-    ? data.filter((book) => category.includes(book.category))
-    : data;
+  useEffect(() => {
+    if (!allBooks) return;
 
-  if (rating > 0) {
-    filtered = filtered.filter((book) => book.rating >= rating);
-  }
+    let filtered = category.length
+      ? allBooks.filter((book) => category.includes(book.category))
+      : allBooks;
 
-  if (sortOrder === "lowToHigh") {
-    filtered = [...filtered].sort((a, b) => a.price - b.price);
-  } else if (sortOrder === "highToLow") {
-    filtered = [...filtered].sort((a, b) => b.price - a.price);
-  }
-
-  if (searchTerm.trim() !== "") {
-    filtered = filtered.filter((book) =>
-      book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      book.author.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }
-  
-
-  setFilter(filtered);
-}, [category, sortOrder, data, rating, searchTerm]);
-
-
-function handleAddToWishlist(selectedBookId) {
-  const selectedBook = data?.find((book) => book._id === selectedBookId);
-  const isAlreadyInWishlist = wishlist.some(book => book._id === selectedBookId);
-  
-  if (selectedBook && !isAlreadyInWishlist) {
-    
-    setWishlist([...wishlist, selectedBook]);
-    
-  }
-}
-
-function handleAddtoCart(selectedBookId){
-
-  const selectedBook = data?.find((book) => book._id === selectedBookId)
-  const isAlreadyInCart = cart.some(book => book._id === selectedBookId);
-
-  if (selectedBook && !isAlreadyInCart){
-    setCart([...cart, { ...selectedBook, quantity: 1 }])
-  }
-
-}
-
-const handleSearch = (e) => {
-  setSearchTerm(e.target.value);
-};
-
-
-function countBooksByCategory(categoryName) {
- return data?.filter(book => book.category === categoryName).length;
-}
-
-
-function categoryHandler(event){
-    let value = event.target.value
-    if (event.target.checked) {
-      setCategory([...category, value])
-    } else {
-      setCategory(category.filter((category) => category != value))
+    if (rating > 0) {
+      filtered = filtered.filter((book) => book.rating >= rating);
     }
-}
 
+    if (sortOrder === "lowToHigh") {
+      filtered = [...filtered].sort((a, b) => a.price - b.price);
+    } else if (sortOrder === "highToLow") {
+      filtered = [...filtered].sort((a, b) => b.price - a.price);
+    }
 
-function removeFromWishlist(selectedBookId) {
-    const updateWishlist = wishlist?.filter((book) => book._id !== selectedBookId)
-    setWishlist(updateWishlist)
-}
+    if (searchTerm.trim() !== "") {
+      filtered = filtered.filter(
+        (book) =>
+          book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          book.author.some((a) =>
+            a.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+      );
+    }
 
-function deleteFromCart(selectedBookId) {
-    const updateCart = cart?.filter((book) => book._id !== selectedBookId)
-    setCart(updateCart)
-}
+    setFilter(filtered);
+  }, [category, sortOrder, allBooks, rating, searchTerm]);
 
-function increaseQuantity(id) {
-  const updatedCart = cart.map((book) =>
-    book._id === id
-      ? { ...book, quantity: book.quantity + 1 }
-      : book
+  useEffect(() => {
+    async function fetchWishlist() {
+      try {
+        const res = await fetch(`https://booknest-backend-webapp.vercel.app/wishlist/${userId}`);
+        const wishListData = await res.json();
+        setWishlist(wishListData);
+      } catch (error) {
+        console.log("Failed to load wishlist:", error);
+      }
+    }
+
+    fetchWishlist();
+  }, []);
+
+  useEffect(() => {
+    async function fetchCart() {
+      try {
+        const res = await fetch(`https://booknest-backend-webapp.vercel.app/cart/${userId}`);
+        const cartData = await res.json();
+        setCart(cartData);
+      } catch (error) {
+        console.log("Failed to fetch cart items:", error);
+      }
+    }
+
+    fetchCart();
+  }, []);
+
+  async function handleAddToWishlist(bookId) {
+    try {
+      const res = await fetch(`https://booknest-backend-webapp.vercel.app/wishlist/${userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookId }),
+      });
+
+      const updated = await res.json();
+      setWishlist(updated);
+      toast("📦 Moved to Wishlist");
+    } catch (error) {
+      console.log("Add to wishlist error:", error);
+      toast.error("Failed to add to wishlist");
+    }
+  }
+
+  async function handleAddToCart(bookId) {
+    try {
+      const res = await fetch(`https://booknest-backend-webapp.vercel.app/cart/${userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookId, quantity: 1 }),
+      });
+
+      const updated = await res.json();
+      setCart(updated);
+      toast.success("🛒 Added to Cart!");
+    } catch (error) {
+      console.log("Add to cart error:", error);
+      toast.error("Failed to add to cart");
+    }
+  }
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  function countBooksByCategory(categoryName) {
+    return allBooks?.filter((book) => book.category === categoryName).length;
+  }
+
+  const totalMrp = cartFull?.reduce(
+    (acc, curr) => acc + curr.mrp * curr.quantity,
+    0
   );
-  setCart(updatedCart);
-}
+  const total = cartFull?.reduce(
+    (acc, curr) => acc + curr.price * curr.quantity,
+    0
+  );
+  const totalItems = cartFull?.reduce((acc, curr) => acc + curr.quantity, 0);
+  const deliveryCharges = total >= 500 ? 0 : 50;
+  const totalAmount = total + deliveryCharges;
+  const discount = cartFull?.reduce(
+    (acc, curr) => acc + (curr.mrp - curr.price) * curr.quantity,
+    0
+  );
 
-function decreaseQuantity(id) {
-  const updatedCart = cart.map((book) =>
-    book._id === id
-      ? { ...book, quantity: book.quantity - 1 }
-      : book
-  ).filter(book => book.quantity > 0);
+  function categoryHandler(event) {
+    let value = event.target.value;
+    if (event.target.checked) {
+      setCategory([...category, value]);
+    } else {
+      setCategory(category.filter((category) => category != value));
+    }
+  }
 
-  setCart(updatedCart);
+  async function removeFromWishlist(bookId) {
+    try {
+      const res = await fetch(`https://booknest-backend-webapp.vercel.app/wishlist/${userId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookId }),
+      });
 
-}
+      const updated = await res.json();
+      setWishlist(updated);
+      toast.warn("💔 Removed from Wishlist");
+    } catch (error) {
+      console.log("Remove wishlist error:", error);
+      toast.error("Failed to remove from wishlist");
+    }
+  }
 
+  async function deleteFromCart(bookId) {
+    try {
+      const res = await fetch(`https://booknest-backend-webapp.vercel.app/cart/${userId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookId }),
+      });
 
-function handleClearFilters() {
-  setCategory([]);
-  setSortOrder("");
-  setFilter(data);
-  setRating(0);
-  setSearchTerm("")
-}
+      const updated = await res.json();
+      setCart(updated);
+      toast.warn("❌ Removed from Cart");
+    } catch (error) {
+      console.log("Remove cart error:", error);
+      toast.error("Failed to remove from cart");
+    }
+  }
 
+  async function increaseQuantity(bookId) {
+    try {
+      const res = await fetch(`https://booknest-backend-webapp.vercel.app/cart/${userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookId, quantity: 1 }),
+      });
 
-return (
-    <BookContext.Provider value={{ data: filter, loading, error, category, setCategory, countBooksByCategory, handleAddToWishlist, wishlist, removeFromWishlist, categoryHandler, rating, setRating, sortOrder, setSortOrder, handleClearFilters, handleAddtoCart, cart, deleteFromCart, increaseQuantity, decreaseQuantity, handleSearch, searchTerm, setSearchTerm }}>
+      const updated = await res.json();
+      setCart(updated);
+      toast("🔼 Quantity Increased");
+    } catch (error) {
+      console.log("Increase error:", error);
+      toast.error("Failed to increase quantity");
+    }
+  }
+
+  async function decreaseQuantity(bookId) {
+    try {
+      const res = await fetch(`https://booknest-backend-webapp.vercel.app/cart/${userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookId, quantity: -1 }),
+      });
+
+      const updated = await res.json();
+      setCart(updated);
+
+      const item = updated.find((i) => i.bookId === bookId);
+
+      if (!item) {
+        toast.error("❌ Removed from Cart");
+      } else if (item.quantity < 1) {
+        toast.error("❌ Removed from Cart");
+      } else {
+        toast("🔽 Quantity Decreased");
+      }
+    } catch (error) {
+      console.log("Decrease error:", error);
+      toast.error("Failed to decrease quantity");
+    }
+  }
+
+  function handleClearFilters() {
+    setCategory([]);
+    setSortOrder("");
+    setFilter(allBooks);
+    setRating(0);
+    setSearchTerm("");
+  }
+
+  return (
+    <BookContext.Provider
+      value={{
+        data: filter,
+        allBooks,
+        loading,
+        error,
+        category,
+        setCategory,
+        countBooksByCategory,
+        handleAddToWishlist,
+        wishlistBooks,
+        removeFromWishlist,
+        categoryHandler,
+        rating,
+        setRating,
+        sortOrder,
+        setSortOrder,
+        handleClearFilters,
+        handleAddToCart,
+        cart,
+        setCart,
+        cartFull,
+        deleteFromCart,
+        increaseQuantity,
+        decreaseQuantity,
+        handleSearch,
+        searchTerm,
+        setSearchTerm,
+        totalMrp,
+        total,
+        totalItems,
+        deliveryCharges,
+        totalAmount,
+        discount,
+        userId,
+      }}
+    >
       {children}
     </BookContext.Provider>
   );
 }
 
-export default useBookContext; 
+// eslint-disable-next-line react-refresh/only-export-components
+export default useBookContext;

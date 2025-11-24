@@ -7,22 +7,41 @@ const FeaturedCategories = () => {
   const categories = [
     "Fiction",
     "Non-Fiction",
-    "Business",
+    "Romance",
+    "Psychology",
+    "Spirituality",
     "Fantasy",
+    "Biography",
+    "Business & Finance",
     "Self-Help",
+    "Notebook",
   ];
   return (
-    <section className="container pb-5 mb-5">
-      <h2 className="pb-4">Featured Categories</h2>
+    <section className="container pb-5">
+      <h3 className="pb-4 mt-5 text-success-emphasis text-center">
+        Featured Categories
+      </h3>
 
       <div className="row g-4">
         {categories.map((category) => (
-          <div className="col-md-4" key={category}>
+          <div className="col-md-4 col-6" key={category}>
             <Link
               to={`/books/category/${category}`}
               className="text-decoration-none"
             >
-              <div className="card d-flex align-items-center justify-content-center p-5 col mx-3">
+              <div
+                className="card d-flex align-items-center justify-content-center p-4 col mx-3"
+                style={{
+                  transition: "transform 0.3s ease",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.transform = "scale(1.05)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.transform = "scale(1)")
+                }
+              >
                 <div className="card-body">
                   <h3 className="card-title">{category}</h3>
                   <p className="lead text-muted text-center">

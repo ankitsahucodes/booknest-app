@@ -1,10 +1,9 @@
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import useBookContext from "../contexts/BookContext";
 import Filter from "../components/Filter";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
+import { useState } from "react";
 
 function BooksListing() {
   const {
@@ -12,12 +11,14 @@ function BooksListing() {
     loading,
     error,
     handleAddToWishlist,
-    wishlist,
+    wishlistBooks,
     setCategory,
-    cart,
-    handleAddtoCart,
+    cartFull,
+    handleAddToCart,
   } = useBookContext();
   const { bookCategory } = useParams();
+
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
     if (bookCategory) {
@@ -27,87 +28,155 @@ function BooksListing() {
     }
   }, [bookCategory, setCategory]);
 
- 
   return (
     <>
-      <Header />
-      <div className="mx-5 my-5">
-        <h3 className="text-center">Showing All Books ({data ? data?.length : "0"})</h3>
-        
-
-        <div className="mx-5 row">
-          <div className="col-md-3 text-start shadow-sm p-3 mb-5 bg-body rounded">
-            <div className="position-sticky " style={{ top: "50px" }}>
+      <div>
+        <h3 className="text-center mt-4">
+          Showing All Books ({data ? data?.length : "0"})
+        </h3>
+        <div className="d-grid gap-2 container mt-3">
+          <button
+            className="btn d-md-none mb-3 btn-dark"
+            onClick={() => setShow(!show)}
+          >
+            {show ? "Close Filters" : "Filters"}
+          </button>
+        </div>
+        <div className="mx-3 row">
+          {/* Desktop Filter (always visible) */}
+          <div className="col-md-3 d-none d-md-block shadow-sm p-5 mb-3 bg-body rounded">
+            <div className="position-sticky" style={{ top: "50px" }}>
               <Filter />
             </div>
           </div>
 
-          <div className="col-md-9">
-            {loading && <p className="border border-success bg-success p-4 bg-opacity-50">Loading...</p>}
+          {/* Mobile Filter (shows when button clicked) */}
+          {show && (
+            <div className="col-12 d-md-none shadow-sm p-4 mb-3 bg-body rounded">
+              <Filter />
+            </div>
+          )}
+
+          <div className="col-12 col-md-9">
+            {loading && (
+              <div className="text-center my-5">
+                <div
+                  className="spinner-border text-success"
+                  role="status"
+                ></div>
+                <p className="mt-3">Loading books...</p>
+              </div>
+            )}
             {error && <p className="display-5">Error: {error}</p>}
 
             <div className="row g-4 mt-3 mb-5">
               {data?.length > 0
-                ? data?.map((book) => (
-                    <div key={book._id} className="col-md-3">
-                      <div className="card h-100 text-center shadow-sm border-0 ">
-                        <Link
-                          to={`/books/${book._id}`}
-                          className="text-decoration-none"
-                        >
-                          
-                          <img
-                            src={book.imageUrl}
-                            className="card-img-top"
-                            alt={book.title}
-                            
-                          />
-                          
-                          <div className="card-body">
-                            <h5 className="card-title text-muted">
-                              {book.title}
-                            </h5>
-                            <h6 className="fw-bold text-dark">
-                              ₹{book.price}{" "}
-                            </h6>
-                          </div>
-                        </Link>
+                ? data?.map((book) => {
+                    const isInCart = cartFull.some(
+                      (item) => item._id === book._id
+                    );
+                    const isInWishlist = wishlistBooks.some(
+                      (item) => item._id === book._id
+                    );
+                    const discountPercent = Math.round(
+                      ((book.mrp - book.price) / book.mrp) * 100
+                    );
 
-                        <div>
-                          <button
-                            className={`btn w-100 mb-2 ${
-                              cart.some((item) => item._id === book._id)
-                                ? "btn-success"
-                                : "btn-outline-success"
-                            }`}
-                            onClick={() => handleAddtoCart(book._id)}
+                    return (
+                      <div
+                        key={book._id}
+                        className="col-6 col-md-4 col-lg-3 col-sm-4"
+                        style={{ paddingLeft: "6px", paddingRight: "6px" }}
+                      >
+                        <div className="card h-100 text-center shadow-sm border-0 ">
+                          <Link
+                            to={`/books/${book._id}`}
+                            className="text-decoration-none"
                           >
-                            {cart.some((item) => item._id === book._id)
-                              ? "Added to Cart"
-                              : "Add to Cart"}
-                          </button>
-                          <button
-                            className={`btn w-100 ${
-                              wishlist.some((item) => item._id === book._id)
-                                ? "btn-secondary"
-                                : "btn-outline-secondary"
-                            }`}
-                            onClick={() => handleAddToWishlist(book._id)}
-                          >
-                            {wishlist.some((item) => item._id === book._id)
-                              ? "Already in Wishlist"
-                              : "Add to Wishlist"}
-                          </button>
+                            <div className="position-relative">
+                              <img
+                                src={book.imageUrl}
+                                className="card-img-top"
+                                alt={book.title}
+                                style={{
+                                  height: "220px",
+                                  width: "100%",
+                                  objectFit: "contain",
+                                  background: "rgba(255, 255, 255, 1)",
+                                }}
+                              />
+
+                              <div
+                                className="position-absolute top-0 start-0 m-2 px-2 py-1 bg-dark text-warning rounded"
+                                style={{ fontSize: "0.85rem", opacity: 0.8 }}
+                              >
+                                ★ {book.rating}
+                              </div>
+                            </div>
+
+                            <div className="card-body py-4 ">
+                              <h5
+                                className="card-title text-muted"
+                                style={{ minHeight: "38px" }}
+                              >
+                                {book.title}
+                              </h5>
+
+                              <div className="d-flex align-items-center justify-content-center gap-2 mt-2">
+                                <h6 className="fw-bold text-dark mb-0">
+                                  ₹{book.price}
+                                </h6>
+
+                                <h6 className="text-decoration-line-through text-muted mb-0 small">
+                                  ₹{book.mrp}
+                                </h6>
+
+                                <span className="badge bg-success">
+                                  {discountPercent}% OFF
+                                </span>
+                              </div>
+                            </div>
+                          </Link>
+
+                          <div>
+                            <button
+                              className={`btn w-100 mb-2 ${
+                                isInCart ? "btn-success" : "btn-outline-success"
+                              }`}
+                              onClick={() => {
+                                if (isInCart) return;
+                                handleAddToCart(book._id);
+                              }}
+                            >
+                              {isInCart ? "Added to Cart" : "Add to Cart"}
+                            </button>
+                            <button
+                              className={`btn w-100 ${
+                                isInWishlist
+                                  ? "btn-secondary"
+                                  : "btn-outline-secondary"
+                              }`}
+                              onClick={() => {
+                                if (isInWishlist) return;
+                                handleAddToWishlist(book._id);
+                              }}
+                            >
+                              {isInWishlist ? "Wishlisted" : "Add to Wishlist"}
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
-                : !loading && <p className="border border-info bg-info p-4 bg-opacity-10">No Books found.</p>}
+                    );
+                  })
+                : !loading && (
+                    <p className="border border-info bg-info p-4 bg-opacity-10">
+                      No Books found.
+                    </p>
+                  )}
             </div>
           </div>
         </div>
       </div>
-      <Footer />
     </>
   );
 }
