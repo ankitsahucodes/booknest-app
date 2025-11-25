@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 const FeaturedCategories = () => {
   const { countBooksByCategory } = useBookContext();
+  
 
   const categories = [
     "Fiction",
@@ -24,13 +25,13 @@ const FeaturedCategories = () => {
 
       <div className="row g-4">
         {categories.map((category) => (
-          <div className="col-md-4 col-6" key={category}>
+          <div className="col-6 col-sm-6 col-md-4" key={category}>
             <Link
               to={`/books/category/${category}`}
               className="text-decoration-none"
             >
               <div
-                className="card d-flex align-items-center justify-content-center p-4 col mx-3"
+                className="card h-100 d-flex align-items-center justify-content-center p-3"
                 style={{
                   transition: "transform 0.3s ease",
                   cursor: "pointer",
@@ -43,7 +44,7 @@ const FeaturedCategories = () => {
                 }
               >
                 <div className="card-body">
-                  <h3 className="card-title">{category}</h3>
+                  <h3 className="card-title fs-5">{category}</h3>
                   <p className="lead text-muted text-center">
                     {countBooksByCategory(category)}{" "}
                     {countBooksByCategory(category) <= 1 ? "Book" : "Books"}

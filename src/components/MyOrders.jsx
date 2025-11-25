@@ -47,7 +47,7 @@ const MyOrders = () => {
             <p>
               <strong>Address: </strong>
               {order.address.houseNumber}, {order.address.street},{" "}
-              {order.address.city}, {order.address.state} -{" "}
+              {order.address.city}, {order.address.state}, {order.address.country} -{" "}
               {order.address.pincode}
             </p>
 

@@ -17,7 +17,9 @@ const Checkout = () => {
       if (!userId) return;
 
       try {
-        const res = await fetch(`https://booknest-backend-webapp.vercel.app/address/${userId}`);
+        const res = await fetch(
+          `https://booknest-backend-webapp.vercel.app/address/${userId}`
+        );
         const data = await res.json();
         setAddresses(data);
       } catch (error) {
@@ -62,14 +64,13 @@ const Checkout = () => {
       }
     );
 
-    // const saveData = await response.json();
-
     if (response.ok) {
-      toast.success("🎉 Order Placed Successfully!");
+      toast.success("🎉 Order Placed Successfully!", {
+        position: "top-center",
+      });
 
-      setTimeout(() => {
-        navigate("/");
-      }, 1500);
+      navigate("/orders");
+
       setCart([]);
     } else {
       toast.error("Failed to place order!");
@@ -101,51 +102,53 @@ const Checkout = () => {
 
         <h4 className="mt-4">Select Delivery Address</h4>
 
-        {addresses.length === 0 && (
-          <div className="alert alert-warning mt-3">
-            No addresses saved. Please add an address.
-          </div>
-        )}
+        <div>
+          {addresses.length === 0 && (
+            <div className="alert alert-warning mt-3">
+              No addresses saved. Please add an address.
+            </div>
+          )}
 
-        {addresses.map((addr) => (
-          <div className="card my-3" key={addr._id}>
-            <label>
-              <div className="card-body d-flex justify-content-between align-items-start">
-                <div>
-                  <input
-                    type="radio"
-                    name="address"
-                    onChange={() => setSelectedAddress(addr._id)}
-                    className="form-check-input me-2"
-                  />
-                  <strong>Address:</strong>
-                  <br />
-                  {addr.houseNumber}, {addr.street} <br />
-                  {addr.city}, {addr.state}, {addr.country} - {addr.pincode}
+          {addresses.map((addr) => (
+            <div className="card my-3" key={addr._id}>
+              <label>
+                <div className="card-body d-flex justify-content-between align-items-start">
+                  <div>
+                    <input
+                      type="radio"
+                      name="address"
+                      onChange={() => setSelectedAddress(addr._id)}
+                      className="form-check-input me-2"
+                    />
+                    <strong>Address:</strong>
+                    <br />
+                    {addr.houseNumber}, {addr.street} <br />
+                    {addr.city}, {addr.state}, {addr.country} - {addr.pincode}
+                  </div>
+
+                  <div className="d-flex">
+                    <button
+                      className="btn btn-sm btn-warning me-3"
+                      onClick={() => navigate(`/add-address?edit=${addr._id}`)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => handleDeleteAddress(addr._id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
+              </label>
+            </div>
+          ))}
 
-                <div className="d-flex">
-                  <button
-                    className="btn btn-sm btn-warning me-3"
-                    onClick={() => navigate(`/add-address?edit=${addr._id}`)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-sm btn-danger"
-                    onClick={() => handleDeleteAddress(addr._id)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </label>
-          </div>
-        ))}
-
-        <Link to="/add-address" className="btn btn-outline-primary mb-3">
-          + Add New Address
-        </Link>
+          <Link to="/add-address" className="btn btn-outline-primary mb-3">
+            + Add New Address
+          </Link>
+        </div>
 
         <div className="py-5">
           <OrderSummary />

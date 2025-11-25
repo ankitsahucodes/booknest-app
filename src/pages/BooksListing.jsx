@@ -85,7 +85,7 @@ function BooksListing() {
                     return (
                       <div
                         key={book._id}
-                        className="col-6 col-md-4 col-lg-3 col-sm-4"
+                        className="col-12 col-md-4 col-lg-3"
                         style={{ paddingLeft: "6px", paddingRight: "6px" }}
                       >
                         <div className="card h-100 text-center shadow-sm border-0 ">

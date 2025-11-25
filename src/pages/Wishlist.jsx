@@ -1,5 +1,5 @@
 import useBookContext from "../contexts/BookContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Wishlist = () => {
   const {
@@ -10,13 +10,15 @@ const Wishlist = () => {
     loading,
     error,
   } = useBookContext();
+
+  const navigate = useNavigate()
   return (
     <>
-      <div className="container my-5">
-        <Link to="/books" className="btn btn-outline-secondary">
+      <div className="container mb-3 mt-3">
+        <button className="btn btn-outline-secondary" onClick={() => navigate(-1)}>
           ← Back to books
-        </Link>
-        <h3 className="text-center">
+        </button>
+        <h3 className="text-center my-4 mb-2">
           My Wishlist{" "}
           {wishlistBooks?.length != 0 ? "(" + wishlistBooks?.length + ")" : ""}
         </h3>
@@ -48,7 +50,7 @@ const Wishlist = () => {
                   (item) => item._id === book._id
                 );
                 return (
-                  <div key={book._id} className="col-md-3 my-3 col-6 col-sm-4">
+                  <div key={book._id} className="col-md-3 my-3 col-12 col-lg-3">
                     <div
                       className="card h-100 text-center mb-4 shadow-sm border-0"
                       style={{ maxWidth: "500px" }}

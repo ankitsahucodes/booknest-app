@@ -1,8 +1,9 @@
 import { NavLink } from "react-router-dom";
 import useBookContext from "../contexts/BookContext";
+import SearchBar from "./SearchBar";
 
 const Header = () => {
-  const { searchTerm, handleSearch, wishlistBooks, cart } =
+  const { wishlistBooks, cart } =
     useBookContext();
 
   return (
@@ -31,16 +32,8 @@ const Header = () => {
             className="collapse navbar-collapse justify-content-lg-end justify-content-start"
             id="navbarNav"
           >
-            <div className="d-flex align-items-center ms-auto ms-lg-0 text-center">
-              <input
-                className="form-control w-75"
-                type="search"
-                id="searchBooks"
-                placeholder="Search Books"
-                aria-label="Search"
-                value={searchTerm}
-                onChange={handleSearch}
-              />
+            <div>
+              <SearchBar />
             </div>
 
             <ul className="navbar-nav ms-auto ms-lg-0 text-start">

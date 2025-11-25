@@ -74,7 +74,7 @@ const AddAddress = () => {
       );
 
       setTimeout(() => {
-        navigate("/checkout");
+        navigate(-1);
       }, 1000);
     } catch (error) {
       console.log(error)
@@ -84,8 +84,8 @@ const AddAddress = () => {
 
   return (
     <div className="container mt-4">
-      <Link to="/checkout" className="btn btn-outline-secondary">
-        ← Back to Checkout
+      <Link className="btn btn-outline-secondary" onClick={() => navigate(-1)}>
+        ← Back
       </Link>
 
       <h3 className="mt-3">{editId ? "Edit Address" : "Add New Address"}</h3>
