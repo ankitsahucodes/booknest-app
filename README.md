@@ -23,7 +23,6 @@ npm run dev
 ## Technologies
 - React JS
 - React Router
-- Chart.js
 - Node.js
 - Express
 - MongoDB
