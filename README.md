@@ -19,11 +19,20 @@ npm install
 npm run dev
 ```
 
+## Environment Setup
+Create a `.env` file in the root directory:
+
+```env
+PORT=3000
+MONGODB_URI=your_mongodb_connection_string
+```
+### Required Keys:<br>
+PORT – Port on which the server runs<br>
+MONGODB_URI – MongoDB connection string
 
 ## Technologies
 - React JS
 - React Router
-- Chart.js
 - Node.js
 - Express
 - MongoDB
